@@ -83,11 +83,11 @@ public class CameraModel
     { 
         get
         {
-            throw new NotImplementedException();
+            return ExtMathFuncs.RotationMatrixToEulerAngles(RotMatrix);
         }
         set
         {
-            throw new NotImplementedException();
+            RotMatrix = ExtMathFuncs.EulerAnglesToRotationMatrix(value);
         }
     }
 

@@ -249,11 +249,8 @@ public class OptimizationMethods
                                                    double[] oldVecP, double[] newVecP)
     {
         // Меняем параметры в камерах на новые значения
-        double[] a = { newVecP[5], newVecP[4], newVecP[3] };
-        //camera2.SetEulerZYXVector((double[])a.Clone());
+        camera2.EulerZYX = new double[3] { newVecP[5], newVecP[4], newVecP[3] };
         
-        //double[,] t = { { newVecP[0] }, { newVecP[1] }, { newVecP[2] } };
-        //camera2.SetTranslationVector((double[,])t.Clone());
         double[] translationVectorRecalibrated = new double[3] { newVecP[0], newVecP[1], newVecP[2] };
         camera1.TransVector = translationVectorRecalibrated;
 
