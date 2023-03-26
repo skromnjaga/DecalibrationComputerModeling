@@ -4,62 +4,148 @@ using OpenCvSharp;
 
 namespace DecalibrationComputerModeling;
 
+
 public class ExtMathFuncs
 {
-    public static Mat Rotm2Euler(Mat r)
+    /// <summary>
+    /// Преобразовывает из матрицы поворота в углы Эйлера в формате Mat
+    /// </summary>
+    /// <param name="rotationMatrix">Матрица поворота</param>
+    /// <returns>Углы Эйлера</returns>
+    public static Mat RotationMatrixToEulerAnglesMat(Mat rotationMatrix)
     {
-        double sy = Sqrt(r.At<double>(0, 0) * r.At<double>(0, 0) + r.At<double>(1, 0) * r.At<double>(1, 0));
+        double sy = Sqrt(rotationMatrix.At<double>(0, 0) * rotationMatrix.At<double>(0, 0) + rotationMatrix.At<double>(1, 0) * rotationMatrix.At<double>(1, 0));
         bool singular = sy < 1e-6;
             
         Mat eulerVec = Mat.Zeros(MatType.CV_64F, new[] {1, 3});
         if (!singular)
         {
-            eulerVec.At<double>(0, 0) = Atan2(r.At<double>(1, 0), r.At<double>(0, 0));
-            eulerVec.At<double>(0, 1) = Atan2(-r.At<double>(2, 0), sy);
-            eulerVec.At<double>(0, 2) = Atan2(r.At<double>(2, 1), r.At<double>(2, 2));
+            eulerVec.At<double>(0, 0) = Atan2(rotationMatrix.At<double>(1, 0), rotationMatrix.At<double>(0, 0));
+            eulerVec.At<double>(0, 1) = Atan2(-rotationMatrix.At<double>(2, 0), sy);
+            eulerVec.At<double>(0, 2) = Atan2(rotationMatrix.At<double>(2, 1), rotationMatrix.At<double>(2, 2));
         }
         else
         {
             eulerVec.At<double>(0, 0) = 0;
-            eulerVec.At<double>(0, 1) = Atan2(-r.At<double>(2, 0), sy);
-            eulerVec.At<double>(0, 2) = Atan2(-r.At<double>(1, 2), r.At<double>(1, 1));
+            eulerVec.At<double>(0, 1) = Atan2(-rotationMatrix.At<double>(2, 0), sy);
+            eulerVec.At<double>(0, 2) = Atan2(-rotationMatrix.At<double>(1, 2), rotationMatrix.At<double>(1, 1));
         }
             
         return eulerVec;
     }
 
-    public static Mat Euler2Rotm(Mat eulerZYX)
+    /// <summary>
+    /// Преобразовывает из матрицы поворота в углы Эйлера
+    /// </summary>
+    /// <param name="rotationMatrix">Матрица поворота</param>
+    /// <returns>Углы Эйлера</returns>
+    public static double[] RotationMatrixToEulerAngles(Mat rotationMatrix)
+    {
+        rotationMatrix.GetRectangularArray(out double[,] rotMatrix);
+
+        return RotationMatrixToEulerAngles(rotMatrix);
+    }
+
+    /// <summary>
+    /// Преобразовывает из матрицы поворота в углы Эйлера
+    /// </summary>
+    /// <param name="rotationMatrix">Матрица поворота</param>
+    /// <returns>Углы Эйлера</returns>
+    public static double[] RotationMatrixToEulerAngles(double[,] rotationMatrix)
+    {
+        double sy = Sqrt(rotationMatrix[0, 0] * rotationMatrix[0, 0] + rotationMatrix[1, 0] * rotationMatrix[1, 0]);
+        bool singular = sy < 1e-6;
+
+        double[] eulerVec = new double[3];
+        if (!singular)
+        {
+            eulerVec[0] = Atan2(rotationMatrix[1, 0], rotationMatrix[0, 0]);
+            eulerVec[1] = Atan2(-rotationMatrix[2, 0], sy);
+            eulerVec[2] = Atan2(rotationMatrix[2, 1], rotationMatrix[2, 2]);
+        }
+        else
+        {
+            eulerVec[0] = 0;
+            eulerVec[1] = Atan2(-rotationMatrix[2, 0], sy);
+            eulerVec[2] = Atan2(-rotationMatrix[1, 2], rotationMatrix[1, 1]);
+        }
+
+        return eulerVec;
+    }
+
+    /// <summary>
+    /// Преобразовывает из углов Эйлера в матрицу поворота в формате Mat
+    /// </summary>
+    /// <param name="eulerAnglesZYX">Углы Эйлера</param>
+    /// <returns>Матрица поворота</returns>
+    public static Mat EulerAnglesToRotationMatrixMat(Mat eulerAnglesZYX)
     {
         Mat rx = new Mat(3, 3, MatType.CV_64F, new [,]
         {
             {1, 0, 0},
-            {0, Cos(eulerZYX.At<double>(0, 2)), -Sin(eulerZYX.At<double>(0, 2))},
-            {0, Sin(eulerZYX.At<double>(0, 2)), Cos(eulerZYX.At<double>(0, 2))},
+            {0, Cos(eulerAnglesZYX.At<double>(0, 2)), -Sin(eulerAnglesZYX.At<double>(0, 2))},
+            {0, Sin(eulerAnglesZYX.At<double>(0, 2)), Cos(eulerAnglesZYX.At<double>(0, 2))},
         });
         Mat ry = new Mat(3, 3, MatType.CV_64F, new [,]
         {
-            {Cos(eulerZYX.At<double>(0, 1)), 0, Sin(eulerZYX.At<double>(0, 1))},
+            {Cos(eulerAnglesZYX.At<double>(0, 1)), 0, Sin(eulerAnglesZYX.At<double>(0, 1))},
             {0, 1, 0},
-            {-Sin(eulerZYX.At<double>(0, 1)), 0, Cos(eulerZYX.At<double>(0, 1))},
+            {-Sin(eulerAnglesZYX.At<double>(0, 1)), 0, Cos(eulerAnglesZYX.At<double>(0, 1))},
         });
         Mat rz = new Mat(3, 3, MatType.CV_64F, new [,]
         {
-            {Cos(eulerZYX.At<double>(0, 0)), -Sin(eulerZYX.At<double>(0, 0)), 0},
-            {Sin(eulerZYX.At<double>(0, 0)), Cos(eulerZYX.At<double>(0, 0)), 0},
+            {Cos(eulerAnglesZYX.At<double>(0, 0)), -Sin(eulerAnglesZYX.At<double>(0, 0)), 0},
+            {Sin(eulerAnglesZYX.At<double>(0, 0)), Cos(eulerAnglesZYX.At<double>(0, 0)), 0},
             {0, 0, 1},
         });
         
         Mat r = rz * ry * rx;
-
-        // for (int i = 0; i < r.Rows; i++)
-        // {
-        //     for (int j = 0; j < r.Cols; j++)
-        //     {
-        //         r.At<double>(i, j) = Round(r.At<double>(i, j), 4, MidpointRounding.AwayFromZero);
-        //     }
-        // }
         
         return r;
+    }
+
+    /// <summary>
+    /// Преобразовывает из углов Эйлера в матрицу поворота в формате Mat
+    /// </summary>
+    /// <param name="eulerAnglesZYX">Углы Эйлера</param>
+    /// <returns>Матрица поворота</returns>
+    public static Mat EulerAnglesToRotationMatrixMat(double[] eulerAnglesZYX)
+    {
+        Mat rotationMatrixMatX = new Mat(3, 3, MatType.CV_64F, new[,]
+        {
+            {1, 0, 0},
+            {0, Cos(eulerAnglesZYX[2]), -Sin(eulerAnglesZYX[2])},
+            {0, Sin(eulerAnglesZYX[2]), Cos(eulerAnglesZYX[2])},
+        });
+        Mat rotationMatrixMatY = new Mat(3, 3, MatType.CV_64F, new[,]
+        {
+            {Cos(eulerAnglesZYX[1]), 0, Sin(eulerAnglesZYX[1])},
+            {0, 1, 0},
+            {-Sin(eulerAnglesZYX[1]), 0, Cos(eulerAnglesZYX[1])},
+        });
+        Mat rotationMatrixMatZ = new Mat(3, 3, MatType.CV_64F, new[,]
+        {
+            {Cos(eulerAnglesZYX[0]), -Sin(eulerAnglesZYX[0]), 0},
+            {Sin(eulerAnglesZYX[0]), Cos(eulerAnglesZYX[0]), 0},
+            {0, 0, 1},
+        });
+
+        Mat rotationMatrixMat = rotationMatrixMatZ * rotationMatrixMatY * rotationMatrixMatX;
+
+        return rotationMatrixMat;
+    }
+
+    /// <summary>
+    /// Преобразовывает из углов Эйлера в матрицу поворота
+    /// </summary>
+    /// <param name="eulerAnglesZYX">Углы Эйлера</param>
+    /// <returns>Матрица поворота</returns>
+    public static double[,] EulerAnglesToRotationMatrix(double[] eulerAnglesZYX)
+    {
+        Mat rotationMatrixMat = EulerAnglesToRotationMatrixMat(eulerAnglesZYX);
+        rotationMatrixMat.GetRectangularArray(out double[,] rotationMatrix);
+
+        return rotationMatrix;
     }
 
     /// <summary>
