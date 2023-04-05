@@ -27,7 +27,7 @@ public class CameraModel
     /// </summary>
     public (int SizeX, int SizeY) SensorSizeInPixels { get; set; }
 
-    public double[,] _intrinsicMatrix = default!;
+    private double[,] _intrinsicMatrix = default!;
 
     /// <summary>
     /// Матрица внутренних параметров
@@ -52,7 +52,7 @@ public class CameraModel
         }
     }
 
-    protected Mat _intrinsicMatrixMat = default!;
+    private Mat _intrinsicMatrixMat = default!;
 
     /// <summary>
     /// Матрица внутренних параметров в формате Mat
@@ -169,11 +169,6 @@ public class CameraModel
     /// Коэффициенты дисторсии в формате Mat
     /// </summary>
     public Mat DistCoeffsMat { get; private set; } = default!;
-
-    /// <summary>
-    /// Матрица точек проекции на матрицу камеры
-    /// </summary>
-    public Mat CoordOnScreen2D { get; set; } = new();
 
 
     public CameraModel()
